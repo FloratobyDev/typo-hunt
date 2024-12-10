@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    image: typo-hunt-frontend:prod
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      - REACT_APP_API_URL=http://api.yourdomain.com
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    networks:
+      - typo-hunt-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    image: typo-hunt-backend:prod
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - DYNAMODB_TABLE=${DYNAMODB_TABLE}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    networks:
+      - typo-hunt-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - typo-hunt-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  typo-hunt-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local

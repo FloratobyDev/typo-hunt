@@ -4,35 +4,41 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
-      - "80:80"
+      - "5173:5173"
     depends_on:
       - backend
     volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/package.json:/app/package.json
-      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    networks:
+      - typo-hunt-network
 
   backend:
     build: 
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=development
       - REDIS_URL=redis://redis:6379
-      - AWS_REGION=us-east-1
+      - AWS_REGION=${AWS_REGION}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - DYNAMODB_TABLE=${DYNAMODB_TABLE}
+      - PORT=3000
     depends_on:
       - redis
     volumes:
-      - ./src:/app/src
-      - ./package.json:/app/package.json
-      - ./tsconfig.json:/app/tsconfig.json
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - typo-hunt-network
 
   redis:
     image: redis:alpine
@@ -40,6 +46,12 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    networks:
+      - typo-hunt-network
 
 volumes:
   redis-data:
+
+networks:
+  typo-hunt-network:
+    driver: bridge

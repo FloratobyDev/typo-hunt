@@ -8,8 +8,8 @@ env:
   AWS_REGION: us-east-1  # Using the region from your docker-compose
   FRONTEND_ECR_REPOSITORY: typo-hunt-frontend
   BACKEND_ECR_REPOSITORY: typo-hunt-backend
-  ECS_SERVICE: typo-hunt-service
-  ECS_CLUSTER: typo-hunt-clustre
+  ECS_SERVICE: arn:aws:ecs:us-east-1:392621639137:service/typo-hunt-clustre/typo-hunt-service
+  ECS_CLUSTER: arn:aws:ecs:us-east-1:392621639137:cluster/typo-hunt-clustre
   ECS_TASK_DEFINITION: arn:aws:ecs:us-east-1:392621639137:task-definition/typo-hunt:2
   FRONTEND_CONTAINER_NAME: frontend
   BACKEND_CONTAINER_NAME: backend

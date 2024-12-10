@@ -16,30 +16,30 @@ const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
 // Initialize Redis Client
-// const redisClient = createClient({
-//     url: process.env.REDIS_URL
-// });
+const redisClient = createClient({
+    url: process.env.REDIS_URL
+});
 
-// // Initialize DynamoDB Client
-// const dynamoDB = new DynamoDB.DocumentClient({
-//     region: process.env.AWS_REGION,
-//     credentials: {
-//         accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-//         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!
-//     }
-// });
+// Initialize DynamoDB Client
+const dynamoDB = new DynamoDB.DocumentClient({
+    region: process.env.AWS_REGION,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!
+    }
+});
 
-// // Connect to Redis
-// async function connectToRedis() {
-//     try {
-//         await redisClient.connect();
-//         console.log('Connected to Redis');
-//     } catch (error) {
-//         console.error('Redis connection error:', error);
-//     }
-// }
+// Connect to Redis
+async function connectToRedis() {
+    try {
+        await redisClient.connect();
+        console.log('Connected to Redis');
+    } catch (error) {
+        console.error('Redis connection error:', error);
+    }
+}
 
-// connectToRedis();
+connectToRedis();
 
 // WebSocket connection handling
 wss.on('connection', (ws) => {
@@ -59,10 +59,10 @@ wss.on('connection', (ws) => {
                 }
             };
 
-            // await dynamoDB.put(params).promise();
+            await dynamoDB.put(params).promise();
 
             // Example: Cache in Redis
-            // await redisClient.set(`message:${params.Item.id}`, JSON.stringify(data));
+            await redisClient.set(`message:${params.Item.id}`, JSON.stringify(data));
 
             // Broadcast message to all connected clients
             wss.clients.forEach((client) => {
@@ -100,7 +100,7 @@ server.listen(PORT, () => {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
     console.log('SIGTERM signal received');
-    // await redisClient.quit();
+    await redisClient.quit();
     server.close(() => {
         console.log('Server closed');
         process.exit(0);
