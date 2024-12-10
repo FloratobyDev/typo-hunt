@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
 
 env:
+  ENVIRONMENT: production
   AWS_REGION: us-east-1  # Using the region from your docker-compose
   FRONTEND_ECR_REPOSITORY: typo-hunt-frontend
   BACKEND_ECR_REPOSITORY: typo-hunt-backend
@@ -44,7 +45,15 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/$FRONTEND_ECR_REPOSITORY:$IMAGE_TAG ./frontend
+        if [[ "$ENVIRONMENT" == "production" ]]; then
+          DOCKERFILE="Dockerfile.prod"
+          IMAGE_TAG="prod-$IMAGE_TAG"
+        else
+          DOCKERFILE="Dockerfile.dev"
+          IMAGE_TAG="dev-$IMAGE_TAG"
+        fi
+
+        docker build -t $ECR_REGISTRY/$FRONTEND_ECR_REPOSITORY:$IMAGE_TAG -f ./frontend/$DOCKERFILE ./frontend
         docker push $ECR_REGISTRY/$FRONTEND_ECR_REPOSITORY:$IMAGE_TAG
         echo "frontend-image=$ECR_REGISTRY/$FRONTEND_ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
@@ -54,7 +63,15 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/$BACKEND_ECR_REPOSITORY:$IMAGE_TAG ./backend
+        if [[ "$ENVIRONMENT" == "production" ]]; then
+          DOCKERFILE="Dockerfile.prod"
+          IMAGE_TAG="prod-$IMAGE_TAG"
+        else
+          DOCKERFILE="Dockerfile.dev"
+          IMAGE_TAG="dev-$IMAGE_TAG"
+        fi
+
+        docker build -t $ECR_REGISTRY/$BACKEND_ECR_REPOSITORY:$IMAGE_TAG -f ./backend/$DOCKERFILE ./backend
         docker push $ECR_REGISTRY/$BACKEND_ECR_REPOSITORY:$IMAGE_TAG
         echo "backend-image=$ECR_REGISTRY/$BACKEND_ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
