@@ -10,7 +10,7 @@ env:
   BACKEND_ECR_REPOSITORY: typo-hunt-backend
   ECS_SERVICE: typo-hunt-service
   ECS_CLUSTER: typo-hunt-clustre
-  ECS_TASK_DEFINITION: .aws/task-definition.json
+  ECS_TASK_DEFINITION: arn:aws:ecs:us-east-1:392621639137:task-definition/typo-hunt:1
   FRONTEND_CONTAINER_NAME: frontend
   BACKEND_CONTAINER_NAME: backend
 
