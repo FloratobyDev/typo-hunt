@@ -3,7 +3,7 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 
-const WEBSOCKET_URL = "ws://localhost:8080";
+const WEBSOCKET_URL = "ws://localhost:3000";
 
 function App() {
   const [count, setCount] = useState(0);
