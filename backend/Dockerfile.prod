@@ -10,23 +10,28 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build if needed (uncomment if you have a build step)
+# RUN npm run build
 
 # Stage 2: Production
 FROM nginx:alpine
 
+# Install Node.js in the Nginx image
+RUN apk add --update nodejs npm
+
+WORKDIR /app
+
+# Copy node application
+COPY --from=builder /app /app
+
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy built files from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Expose port
 EXPOSE 80
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:80/health -O /dev/null || exit 1
+# Start both Nginx and Node.js application
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/start.sh"]
